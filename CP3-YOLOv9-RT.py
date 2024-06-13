@@ -17,7 +17,8 @@ KNOWN_HEIGHTS = {
     24: 5.5,  # Giraffe
 }
 
-FOCAL_LENGTH = 700  # Exemplo de distância focal em pixels (necessita calibração)
+# Distância focal em pixeis
+FOCAL_LENGTH = 700  
 
 # Classes de animais no dataset COCO
 ANIMAL_CLASSES = list(KNOWN_HEIGHTS.keys())
@@ -45,7 +46,8 @@ def group_boxes(boxes, iou_threshold=0.5):
     if not boxes:
         return []
     
-    boxes = sorted(boxes, key=lambda x: x[4], reverse=True)  # Ordenar por confiança
+    # Ordenar por confiança
+    boxes = sorted(boxes, key=lambda x: x[4], reverse=True)  
     grouped_boxes = []
     
     while boxes:
@@ -62,19 +64,15 @@ def group_boxes(boxes, iou_threshold=0.5):
     
     return grouped_boxes
 
-# Função para mostrar um sinal de aviso na tela
+# Função para mostrar um sinal de aviso
 def show_warning(frame):
     frame_height, frame_width = frame.shape[:2]
     thickness = 5
-    color = (0, 0, 255)  # Vermelho
+    color = (0, 0, 255)  
 
-    # Desenhar a linha superior
     cv2.line(frame, (0, 0), (frame_width, 0), color, thickness)
-    # Desenhar a linha inferior
     cv2.line(frame, (0, frame_height - 1), (frame_width, frame_height - 1), color, thickness)
-    # Desenhar a linha esquerda
     cv2.line(frame, (0, 0), (0, frame_height), color, thickness)
-    # Desenhar a linha direita
     cv2.line(frame, (frame_width - 1, 0), (frame_width - 1, frame_height), color, thickness)
 
 # Função para reproduzir som em uma thread separada
@@ -102,26 +100,26 @@ frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-# Definir o nome do arquivo de saída para o vídeo com detecção
+# Definir o nome do arquivo de saída para o vídeo
 output_video_path = 'detected_video.mp4'
 
 # Criar o objeto VideoWriter
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
-# Loop através dos quadros do vídeo
+# Loop através das frames do vídeo
 while True:
-    # Ler o próximo quadro
+    # Ler a próximo frame
     ret, frame = cap.read()
 
-    # Verificar se o quadro foi lido corretamente
+    # Verificar se a frame foi lida corretamente
     if not ret:
         break
 
-    # Realizar a detecção
+    # Realizar a deteção
     results = model(frame)
 
-    # Coletar caixas delimitadoras e filtrar por classes de animais
+    # Agrupar caixas delimitadoras e filtrar por classes de animais
     boxes = []
     for result in results[0].boxes:
         x1, y1, x2, y2 = result.xyxy[0].cpu().numpy()
@@ -145,7 +143,7 @@ while True:
 
         label = f'{model.names[int(cls_avg)]}'
 
-        # Calcular altura média do objeto em pixels
+        # Calcular altura média do objeto em pixeis
         object_height_in_pixels = y2_avg - y1_avg
         
         # Usar a altura conhecida da classe para estimar a distância
@@ -156,29 +154,29 @@ while True:
             
             # Se a distância for menor ou igual a 10 metros, mostrar um sinal de aviso e tocar som
             if distance <= 10.0:
-                color = (0, 0, 255)  # Red color in BGR
+                color = (0, 0, 255) 
                 show_warning(frame)
-                # Reproduzir som em uma thread separada
+                # Reproduzir som numa thread separada
                 threading.Thread(target=play_sound).start()
             else:
-                color = (255, 0, 0)  # Blue color in BGR
+                color = (255, 0, 0)  
 
             # Desenhar a caixa delimitadora média
             cv2.rectangle(frame, (int(x1_avg), int(y1_avg)), (int(x2_avg), int(y2_avg)), color, 1)
             cv2.putText(frame, label, (int(x1_avg), int(y1_avg) - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 1) 
             cv2.putText(frame, distance_label, (int(x1_avg), int(y2_avg) + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 1)
 
-    # Mostrar o quadro processado
+    # Mostrar a frame processada
     cv2.imshow('Detecção de Animais', frame)
 
-    # Adicionar o quadro processado ao vídeo de saída
+    # Adicionar a frame processada ao vídeo de saída
     out.write(frame)
 
     # Verificar se a tecla 'q' foi pressionada para sair do loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Liberar os recursos
+# libertar os recursos
 cap.release()
 out.release()
 cv2.destroyAllWindows()

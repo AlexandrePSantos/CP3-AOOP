@@ -65,7 +65,7 @@ def group_boxes(boxes, iou_threshold=0.5):
 model = YOLO('yolov9c.pt')
 
 # Carregar uma imagem
-img_path = './cows2.jpg'
+img_path = './cows.jpg'
 img = cv2.imread(img_path)
 
 # Verificar se a imagem foi carregada corretamente
@@ -101,8 +101,8 @@ for group in grouped_boxes:
     label = f'{model.names[int(cls_avg)]}'
 
     # Desenhar a caixa delimitadora média
-    cv2.rectangle(img, (int(x1_avg), int(y1_avg)), (int(x2_avg), int(y2_avg)), (255, 0, 0), 2)
-    cv2.putText(img, label, (int(x1_avg), int(y1_avg) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+    cv2.rectangle(img, (int(x1_avg), int(y1_avg)), (int(x2_avg), int(y2_avg)), (255, 0, 0), 1)
+    cv2.putText(img, label, (int(x1_avg), int(y1_avg) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 1)
     
     # Calcular altura média do objeto em pixels
     object_height_in_pixels = y2_avg - y1_avg
@@ -112,7 +112,7 @@ for group in grouped_boxes:
     if object_height_in_pixels > 0:
         distance = (known_height * FOCAL_LENGTH) / object_height_in_pixels
         distance_label = f'Distance: {distance:.2f}m'
-        cv2.putText(img, distance_label, (int(x1_avg), int(y2_avg) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+        cv2.putText(img, distance_label, (int(x1_avg), int(y2_avg) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 1)
 
 # Converter BGR para RGB
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
