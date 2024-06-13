@@ -135,10 +135,6 @@ while True:
 
         label = f'{model.names[int(cls_avg)]}'
 
-        # Desenhar a caixa delimitadora média
-        cv2.rectangle(frame, (int(x1_avg), int(y1_avg)), (int(x2_avg), int(y2_avg)), (255, 0, 0), 1)
-        cv2.putText(frame, label, (int(x1_avg), int(y1_avg) - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 1)  # Moved label up by 20 pixels
-
         # Calcular altura média do objeto em pixels
         object_height_in_pixels = y2_avg - y1_avg
         
@@ -147,11 +143,18 @@ while True:
         if object_height_in_pixels > 0:
             distance = (known_height * FOCAL_LENGTH) / object_height_in_pixels
             distance_label = f'Distance: {distance:.2f}m'
-            cv2.putText(frame, distance_label, (int(x1_avg), int(y2_avg) + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 1)
             
-            # Se a distância for menor ou igual a 7 metros, mostrar um sinal de aviso
+            # If distance is less than or equal to 10 meters, show a warning sign
             if distance <= 10.0:
+                color = (0, 0, 255)  # Red color in BGR
                 show_warning(frame)
+            else:
+                color = (255, 0, 0)  # Blue color in BGR
+
+            # Desenhar a caixa delimitadora média
+            cv2.rectangle(frame, (int(x1_avg), int(y1_avg)), (int(x2_avg), int(y2_avg)), color, 1)
+            cv2.putText(frame, label, (int(x1_avg), int(y1_avg) - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 1) 
+            cv2.putText(frame, distance_label, (int(x1_avg), int(y2_avg) + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 1)
 
     # Mostrar o quadro processado
     cv2.imshow('Detecção de Animais', frame)
