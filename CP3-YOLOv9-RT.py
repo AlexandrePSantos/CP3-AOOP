@@ -1,6 +1,8 @@
 from ultralytics import YOLO
 import cv2
 import numpy as np
+import pygame
+import threading
 
 # Definir alturas médias para cada classe de animal (em metros)
 KNOWN_HEIGHTS = {
@@ -75,6 +77,14 @@ def show_warning(frame):
     # Desenhar a linha direita
     cv2.line(frame, (frame_width - 1, 0), (frame_width - 1, frame_height), color, thickness)
 
+# Função para reproduzir som em uma thread separada
+def play_sound():
+    pygame.mixer.init()
+    pygame.mixer.music.load('warning_sound.mp3')
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
 # Carregar o modelo treinado
 model = YOLO('yolov9c.pt')
 
@@ -144,10 +154,12 @@ while True:
             distance = (known_height * FOCAL_LENGTH) / object_height_in_pixels
             distance_label = f'Distance: {distance:.2f}m'
             
-            # If distance is less than or equal to 10 meters, show a warning sign
+            # Se a distância for menor ou igual a 10 metros, mostrar um sinal de aviso e tocar som
             if distance <= 10.0:
                 color = (0, 0, 255)  # Red color in BGR
                 show_warning(frame)
+                # Reproduzir som em uma thread separada
+                threading.Thread(target=play_sound).start()
             else:
                 color = (255, 0, 0)  # Blue color in BGR
 
