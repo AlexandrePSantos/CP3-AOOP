@@ -86,13 +86,14 @@ def play_sound():
 # Carregar o modelo treinado
 model = YOLO('yolov9c.pt')
 
-# Abrir o vídeo
-video_path = './cows_crossing.mp4'
-cap = cv2.VideoCapture(video_path)
+# Webcam
+cap = cv2.VideoCapture(0)
+desired_fps = 30 
+cap.set(cv2.CAP_PROP_FPS, desired_fps)
 
-# Verificar se o vídeo foi aberto corretamente
+# Verificar se a vídeo foi aberto corretamente
 if not cap.isOpened():
-    print("Erro ao abrir o vídeo.")
+    print("Erro ao abrir a vídeo.")
     exit()
 
 # Abrir o vídeo original para obter as informações do vídeo
@@ -109,14 +110,14 @@ out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height
 
 # Loop através das frames do vídeo
 while True:
-    # Ler a próximo frame
+    # Ler a próxima frame
     ret, frame = cap.read()
 
     # Verificar se a frame foi lida corretamente
     if not ret:
         break
-
-    # Realizar a deteção
+    
+    # Realizar a detecção
     results = model(frame)
 
     # Agrupar caixas delimitadoras e filtrar por classes de animais
@@ -131,6 +132,9 @@ while True:
 
     # Agrupar caixas delimitadoras próximas
     grouped_boxes = group_boxes(boxes)
+
+    # Flag para verificar se um objeto foi detectado
+    object_detected = False
 
     # Desenhar caixas delimitadoras agrupadas e estimar distância
     for group in grouped_boxes:
@@ -152,12 +156,9 @@ while True:
             distance = (known_height * FOCAL_LENGTH) / object_height_in_pixels
             distance_label = f'Distance: {distance:.2f}m'
             
-            # Se a distância for menor ou igual a 10 metros, mostrar um sinal de aviso e tocar som
+            # Se a distância for menor ou igual a 10 metros, marcar que um objeto foi detectado
             if distance <= 10.0:
-                color = (0, 0, 255) 
-                show_warning(frame)
-                # Reproduzir som numa thread separada
-                threading.Thread(target=play_sound).start()
+                object_detected = True
             else:
                 color = (255, 0, 0)  
 
@@ -176,7 +177,16 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# libertar os recursos
+    # Se um objeto foi detectado, reproduzir o som de aviso
+    if object_detected:
+        color = (0, 0, 255) 
+        show_warning(frame)
+        # Reproduzir som numa thread separada
+        threading.Thread(target=play_sound).start()
+    else:
+        color = (255, 0, 0)
+
+# liberar os recursos
 cap.release()
 out.release()
 cv2.destroyAllWindows()
